@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prame Trust | Business Banking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+        }
+        .corporate-gradient {
+            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+        }
+        .transaction-card {
+            transition: all 0.2s ease;
+        }
+        .transaction-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .blur-effect {
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+        .modal-content {
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+        .modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        .modal-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .modal-content::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        .modal-content::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: #e5e7eb;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .notification-pulse {
+            animation: pulse 2s infinite;
+        }
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2563eb;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .processing-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .processing-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .receipt {
+            font-family: 'Courier New', monospace;
+        }
+        @media print {
+            .no-print {
+                display: none;
+            }
+            .receipt-print {
+                padding: 20px;
+                background: white;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="fixed inset-0 bg-white z-50 flex items-center justify-center">
+        <div class="text-center">
+            <div class="loading-spinner mx-auto"></div>
+            <p class="mt-4 text-gray-700 font-medium">Loading Prame Trust Business Banking</p>
+        </div>
+    </div>
+
+    <!-- Processing Overlay -->
+    <div id="processing-overlay" class="processing-overlay">
+        <div class="bg-white rounded-lg p-8 text-center max-w-sm">
+            <div class="loading-spinner mx-auto mb-4"></div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Processing Transaction</h3>
+            <p class="text-sm text-gray-500" id="processing-message">Please wait...</p>
+        </div>
+    </div>
+
+    <!-- Login Page -->
+    <div id="login-page" class="min-h-screen flex items-center justify-center corporate-gradient p-4">
+        <div class="w-full max-w-md">
+            <div class="blur-effect rounded-2xl shadow-2xl overflow-hidden">
+                <div class="p-8">
+                    <div class="text-center mb-8">
+                        <div class="text-4xl font-bold text-white mb-2">Prame Trust</div>
+                        <p class="text-blue-100">Business Banking</p>
+                        <h1 class="text-xl font-bold text-white mt-4">Secure Corporate Access</h1>
+                    </div>
+                    
+                    <form id="login-form" class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-blue-100">Business ID</label>
+                            <input type="text" id="username" required 
+                                   class="mt-1 block w-full px-4 py-3 rounded-lg bg-white bg-opacity-90 border border-blue-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-mono"
+                                   placeholder="Enter your Business ID">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-blue-100">Password</label>
+                            <input type="password" id="password" required 
+                                   class="mt-1 block w-full px-4 py-3 rounded-lg bg-white bg-opacity-90 border border-blue-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-mono"
+                                   placeholder="Enter your password">
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <input id="remember-me" type="checkbox" class="h-4 w-4 text-blue-600 rounded">
+                                <label class="ml-2 block text-sm text-blue-100">Remember this device</label>
+                            </div>
+                            <a href="#" class="text-sm text-blue-200 hover:text-white">Forgot password?</a>
+                        </div>
+                        
+                        <button type="submit" id="login-btn" class="w-full flex justify-center items-center py-3 px-4 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-sign-in-alt mr-2"></i> Sign In
+                        </button>
+                    </form>
+                    
+                    <div class="mt-6 text-center">
+                        <p class="text-sm text-blue-100">
+                            New to Prame Trust Business Banking? 
+                            <a href="#" class="font-medium text-white hover:text-blue-200">Contact our business team</a>
+                        </p>
+                    </div>
+                    
+                    <div class="mt-8 pt-6 border-t border-blue-400 border-opacity-30">
+                        <div class="flex justify-center space-x-4">
+                            <span class="text-xs text-blue-200"><i class="fas fa-shield-alt mr-1"></i> FDIC Insured</span>
+                            <span class="text-xs text-blue-200"><i class="fas fa-lock mr-1"></i> 256-bit Encryption</span>
+                            <span class="text-xs text-blue-200"><i class="fas fa-check-circle mr-1"></i> SOC 2 Compliant</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard" class="hidden min-h-screen bg-gray-50">
+        <!-- Header -->
+        <header class="corporate-gradient shadow-lg sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="text-white font-bold text-xl">Prame Trust</div>
+                        <div class="hidden md:block border-l border-blue-400 pl-4">
+                            <p class="text-sm text-white font-medium">Business Banking</p>
+                            <p class="text-xs text-blue-200">Corporate Account Portal</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <button id="notifications-btn" class="relative p-2 text-white hover:text-blue-200 rounded-full hover:bg-blue-800 transition-colors">
+                                <i class="fas fa-bell text-lg"></i>
+                                <span id="notification-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold hidden">0</span>
+                            </button>
+                            <div id="notifications-dropdown" class="hidden absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl z-50 border border-gray-200 max-h-96 overflow-y-auto">
+                                <div class="p-3 border-b border-gray-100 bg-gray-50 sticky top-0">
+                                    <p class="text-sm font-medium text-gray-900">Notifications</p>
+                                </div>
+                                <div id="notifications-list" class="divide-y divide-gray-100"></div>
+                            </div>
+                        </div>
+                        
+                        <button id="business-support-btn" class="p-2 text-white hover:text-blue-200 rounded-full hover:bg-blue-800 transition-colors">
+                            <i class="fas fa-headset"></i>
+                        </button>
+                        
+                        <div class="relative">
+                            <button id="user-menu-button" class="flex items-center space-x-2 text-white hover:text-blue-200 focus:outline-none">
+                                <div class="w-8 h-8 bg-blue-700 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-building text-sm"></i>
+                                </div>
+                                <div class="text-left hidden md:block">
+                                    <p class="text-sm font-medium">Jason Esquire Legal</p>
+                                    <p class="text-xs text-blue-200">Business Account</p>
+                                </div>
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </button>
+                            <div id="user-menu" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl z-50 border border-gray-200">
+                                <div class="p-3 border-b border-gray-100 bg-gray-50">
+                                    <p class="text-sm font-medium text-gray-900">Jason Esquire Legal</p>
+                                    <p class="text-xs text-gray-500">Business Account</p>
+                                </div>
+                                <div class="p-2">
+                                    <a href="#" id="statements-menu-btn" class="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded">
+                                        <i class="fas fa-file-invoice-dollar w-5 text-gray-400"></i> Statements
+                                    </a>
+                                    <a href="#" id="logout-btn" class="flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded mt-1">
+                                        <i class="fas fa-sign-out-alt w-5"></i> Sign Out
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Welcome Banner -->
+            <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl shadow-lg p-6 mb-6 text-white">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+                    <div>
+                        <h1 class="text-2xl font-bold">Welcome back, Jason Esquire Legal Chambers</h1>
+                        <p class="text-blue-100 mt-1">Account Manager: Maria Maiden</p>
+                    </div>
+                    <div class="mt-4 md:mt-0 flex space-x-3">
+                        <button id="quick-transfer-btn" class="px-4 py-2 bg-white text-blue-700 rounded-lg hover:bg-gray-100 font-medium transition-colors">
+                            <i class="fas fa-exchange-alt mr-2"></i>Transfer
+                        </button>
+                        <button id="generate-statement-btn" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors">
+                            <i class="fas fa-file-pdf mr-2"></i>Statement
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Cards -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Checking Account -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-800">Business Checking</h2>
+                            <p class="text-sm text-gray-500 font-mono">•••• 7890</p>
+                        </div>
+                        <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">Primary</span>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-sm text-gray-500">Available Balance</p>
+                        <p class="text-3xl font-bold text-gray-800" id="checking-balance">$4,250,000.00</p>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button class="action-btn p-2 bg-blue-50 hover:bg-blue-100 rounded-lg text-center" data-action="transfer">
+                            <i class="fas fa-exchange-alt text-blue-600"></i>
+                            <span class="text-xs block mt-1">Transfer</span>
+                        </button>
+                        <button class="action-btn p-2 bg-green-50 hover:bg-green-100 rounded-lg text-center" data-action="deposit">
+                            <i class="fas fa-arrow-down text-green-600"></i>
+                            <span class="text-xs block mt-1">Deposit</span>
+                        </button>
+                        <button class="action-btn p-2 bg-purple-50 hover:bg-purple-100 rounded-lg text-center" data-action="withdraw">
+                            <i class="fas fa-arrow-up text-purple-600"></i>
+                            <span class="text-xs block mt-1">Withdraw</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Savings Account -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-800">Business Savings</h2>
+                            <p class="text-sm text-gray-500 font-mono">•••• 4567</p>
+                        </div>
+                        <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">3.25% APY</span>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-sm text-gray-500">Current Balance</p>
+                        <p class="text-3xl font-bold text-gray-800" id="savings-balance">$1,400,000.00</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Monthly Interest</span>
+                            <span class="text-green-600 font-medium" id="monthly-interest">$3,791.67</span>
+                        </div>
+                        <div class="progress-bar mt-2">
+                            <div class="progress-fill bg-green-500" style="width: 65%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transaction History -->
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center flex-wrap gap-3">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800">Transaction History</h2>
+                        <p class="text-sm text-gray-500">Complete transaction record (Jan - May 2025)</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <select id="transaction-filter" class="text-sm border-gray-300 rounded-md px-3 py-1">
+                            <option value="all">All Accounts</option>
+                            <option value="checking">Checking</option>
+                            <option value="savings">Savings</option>
+                        </select>
+                        <button id="refresh-transactions" class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="transactions-container" class="divide-y divide-gray-200 max-h-96 overflow-y-auto"></div>
+            </div>
+
+            <!-- Summary -->
+            <div class="mt-6 bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                <div class="flex justify-between items-center flex-wrap gap-4">
+                    <div>
+                        <p class="text-sm text-gray-500">Total Assets</p>
+                        <p class="text-2xl font-bold text-gray-800" id="total-balance">$5,650,000.00</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">YTD Growth</p>
+                        <p class="text-xl font-semibold text-green-600" id="ytd-growth">+22.5%</p>
+                    </div>
+                    <button id="open-new-account" class="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Open Account
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <footer class="bg-white border-t border-gray-200 mt-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-sm text-gray-500">
+                <p>© 2025 Prame Trust. Member FDIC. Equal Housing Lender.</p>
+                <p class="mt-1">Jason Esquire Legal Chambers LLC • Business Banking Division</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Transfer Modal -->
+    <div id="transfer-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-lg">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6 sticky top-0 bg-white z-10">
+                    <h3 class="text-lg font-semibold">Transfer Funds</h3>
+                    <button class="close-modal text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="transfer-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">From Account</label>
+                        <select id="transfer-from" class="w-full px-3 py-2 border rounded-md">
+                            <option value="checking">Business Checking ($4,250,000.00)</option>
+                            <option value="savings">Business Savings ($1,400,000.00)</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Transfer Type</label>
+                        <select id="transfer-type" class="w-full px-3 py-2 border rounded-md">
+                            <option value="internal">Internal Transfer (Between My Accounts)</option>
+                            <option value="external">External Transfer (To Another Bank)</option>
+                        </select>
+                    </div>
+                    
+                    <div id="internal-transfer-section">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">To Account</label>
+                        <select id="transfer-to-internal" class="w-full px-3 py-2 border rounded-md">
+                            <option value="checking">Business Checking</option>
+                            <option value="savings">Business Savings</option>
+                        </select>
+                    </div>
+                    
+                    <div id="external-transfer-section" class="hidden">
+                        <div class="bank-details bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm font-semibold text-gray-700 mb-3">Recipient Bank Details</p>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Recipient Name <span class="text-red-500">*</span></label>
+                                    <input type="text" id="recipient-name" class="w-full px-3 py-2 border rounded-md" placeholder="Full name of recipient">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Bank Name <span class="text-red-500">*</span></label>
+                                    <input type="text" id="bank-name" class="w-full px-3 py-2 border rounded-md" placeholder="Name of recipient's bank">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Account Number <span class="text-red-500">*</span></label>
+                                    <input type="text" id="account-number" class="w-full px-3 py-2 border rounded-md font-mono" placeholder="Recipient account number">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Account Number <span class="text-red-500">*</span></label>
+                                    <input type="text" id="confirm-account" class="w-full px-3 py-2 border rounded-md font-mono" placeholder="Re-enter account number">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Routing Number (ABA) <span class="text-red-500">*</span></label>
+                                    <input type="text" id="routing-number" class="w-full px-3 py-2 border rounded-md font-mono" placeholder="9-digit routing number" maxlength="9">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount <span class="text-red-500">*</span></label>
+                        <input type="number" id="transfer-amount" step="0.01" min="0.01" class="w-full px-3 py-2 border rounded-md" placeholder="0.00">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Description / Memo</label>
+                        <input type="text" id="transfer-desc" class="w-full px-3 py-2 border rounded-md" placeholder="Transfer description">
+                    </div>
+                    
+                    <button type="submit" class="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                        Process Transfer
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deposit Modal - Enhanced -->
+    <div id="deposit-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold">Make a Deposit</h3>
+                    <button class="close-modal text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="deposit-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Deposit To</label>
+                        <select id="deposit-account" class="w-full px-3 py-2 border rounded-md">
+                            <option value="checking">Business Checking ($4,250,000.00)</option>
+                            <option value="savings">Business Savings ($1,400,000.00)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Deposit Method</label>
+                        <select id="deposit-method" class="w-full px-3 py-2 border rounded-md">
+                            <option value="wire">Wire Transfer</option>
+                            <option value="ach">ACH Transfer</option>
+                            <option value="check">Check Deposit</option>
+                            <option value="cash">Cash Deposit</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Reference Number</label>
+                        <input type="text" id="deposit-ref" class="w-full px-3 py-2 border rounded-md font-mono" placeholder="e.g., TRX-2025-XXXXX">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                        <input type="number" id="deposit-amount" step="0.01" min="0.01" class="w-full px-3 py-2 border rounded-md" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <input type="text" id="deposit-desc" class="w-full px-3 py-2 border rounded-md" placeholder="Deposit source / purpose">
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+                        Process Deposit
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdraw Modal - Enhanced -->
+    <div id="withdraw-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold">Make a Withdrawal</h3>
+                    <button class="close-modal text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="withdraw-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Withdraw From</label>
+                        <select id="withdraw-account" class="w-full px-3 py-2 border rounded-md">
+                            <option value="checking">Business Checking ($4,250,000.00)</option>
+                            <option value="savings">Business Savings ($1,400,000.00)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Withdrawal Method</label>
+                        <select id="withdraw-method" class="w-full px-3 py-2 border rounded-md">
+                            <option value="wire">Wire Transfer</option>
+                            <option value="ach">ACH Transfer</option>
+                            <option value="check">Cashier's Check</option>
+                            <option value="cash">Cash Withdrawal</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Payable To</label>
+                        <input type="text" id="withdraw-payable" class="w-full px-3 py-2 border rounded-md" placeholder="Recipient name">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                        <input type="number" id="withdraw-amount" step="0.01" min="0.01" class="w-full px-3 py-2 border rounded-md" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Purpose / Description</label>
+                        <input type="text" id="withdraw-desc" class="w-full px-3 py-2 border rounded-md" placeholder="Withdrawal purpose">
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
+                        Process Withdrawal
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div id="receipt-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-2xl">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold">Transaction Receipt</h3>
+                    <button class="close-receipt text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+                </div>
+                <div id="receipt-content" class="receipt"></div>
+                <div class="mt-6 pt-4 border-t flex justify-end gap-3">
+                    <button id="print-receipt" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        <i class="fas fa-print mr-2"></i>Print Receipt
+                    </button>
+                    <button id="download-receipt" class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">
+                        <i class="fas fa-download mr-2"></i>Download PDF
+                    </button>
+                    <button id="close-receipt" class="px-4 py-2 border rounded-md hover:bg-gray-50">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statement Modal -->
+    <div id="statement-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-5xl">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6 sticky top-0 bg-white z-10 pb-4 border-b">
+                    <h3 class="text-xl font-bold">Account Statement</h3>
+                    <button class="close-modal text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+                </div>
+                <div id="statement-content" class="space-y-6 max-h-[70vh] overflow-y-auto"></div>
+                <div class="mt-6 pt-4 border-t flex justify-end gap-3 sticky bottom-0 bg-white">
+                    <button id="print-statement" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        <i class="fas fa-print mr-2"></i>Print Statement
+                    </button>
+                    <button id="close-statement-modal" class="px-4 py-2 border rounded-md hover:bg-gray-50">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Hardcoded credentials
+        const VALID_USERNAME = "BUS-7890-4321-2025";
+        const VALID_PASSWORD = "Maria@0023//";
+
+        let bankingState = {
+            checking: 4250000.00,
+            savings: 1400000.00,
+            transactions: [],
+            notifications: []
+        };
+
+        let savedExternalAccounts = [];
+
+        // Generate 100+ realistic transactions for Jan-May 2025
+        function initializeTransactions() {
+            const transactions = [];
+            
+            const transactionTypes = [
+                { desc: "Client Retainer - Corporate Legal Services", category: "Legal Fees", type: "deposit", min: 50000, max: 250000 },
+                { desc: "Court Settlement - Class Action", category: "Settlements", type: "deposit", min: 100000, max: 500000 },
+                { desc: "Office Rent Payment", category: "Rent", type: "withdraw", min: 35000, max: 45000 },
+                { desc: "Payroll Processing", category: "Payroll", type: "withdraw", min: 75000, max: 120000 },
+                { desc: "Client Payment Received", category: "Legal Services", type: "deposit", min: 25000, max: 150000 },
+                { desc: "Professional Dues - Bar Association", category: "Professional Fees", type: "withdraw", min: 3000, max: 8000 },
+                { desc: "Legal Research Database Subscription", category: "Subscriptions", type: "withdraw", min: 2000, max: 5000 },
+                { desc: "Expert Witness Fee", category: "Professional Services", type: "withdraw", min: 15000, max: 35000 },
+                { desc: "Interest Earned", category: "Interest", type: "deposit", min: 3000, max: 5000 },
+                { desc: "Tax Payment - Quarterly Estimated", category: "Taxes", type: "withdraw", min: 75000, max: 150000 },
+                { desc: "Equipment Purchase - Office Furniture", category: "Equipment", type: "withdraw", min: 10000, max: 30000 },
+                { desc: "Marketing & Advertising", category: "Marketing", type: "withdraw", min: 5000, max: 15000 },
+                { desc: "Insurance Premium", category: "Insurance", type: "withdraw", min: 8000, max: 20000 },
+                { desc: "Client Trust Deposit", category: "Trust Account", type: "deposit", min: 50000, max: 200000 },
+                { desc: "Utilities & Office Expenses", category: "Utilities", type: "withdraw", min: 3000, max: 8000 },
+                { desc: "Bar Association Dues", category: "Professional Fees", type: "withdraw", min: 2500, max: 5000 },
+                { desc: "Continuing Legal Education", category: "Education", type: "withdraw", min: 2000, max: 6000 },
+                { desc: "Software Licenses - Practice Management", category: "Technology", type: "withdraw", min: 5000, max: 15000 },
+                { desc: "Business Development", category: "Marketing", type: "withdraw", min: 10000, max: 30000 },
+                { desc: "Client Settlement Disbursement", category: "Settlements", type: "withdraw", min: 50000, max: 200000 }
+            ];
+            
+            let currentChecking = 4250000.00;
+            let currentSavings = 1400000.00;
+            let transactionId = 1;
+            
+            // Generate 120 transactions for Jan-May 2025 (approximately 24 per month)
+            for (let i = 0; i < 120; i++) {
+                const txnType = transactionTypes[Math.floor(Math.random() * transactionTypes.length)];
+                const amount = txnType.min + Math.random() * (txnType.max - txnType.min);
+                const isDeposit = txnType.type === 'deposit';
+                const finalAmount = Math.round(amount * 100) / 100;
+                
+                // 70% checking, 30% savings
+                const account = Math.random() > 0.3 ? 'checking' : 'savings';
+                let newBalance;
+                
+                if (account === 'checking') {
+                    newBalance = isDeposit ? currentChecking + finalAmount : currentChecking - finalAmount;
+                    if (newBalance > 0) {
+                        currentChecking = newBalance;
+                    } else {
+                        continue;
+                    }
+                } else {
+                    newBalance = isDeposit ? currentSavings + finalAmount : currentSavings - finalAmount;
+                    if (newBalance > 0) {
+                        currentSavings = newBalance;
+                    } else {
+                        continue;
+                    }
+                }
+                
+                // Generate dates throughout Jan-May 2025
+                const month = Math.floor(Math.random() * 5); // 0-4 (Jan-May)
+                const day = Math.floor(Math.random() * 28) + 1;
+                const date = new Date(2025, month, day);
+                const dateStr = date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+                
+                transactions.push({
+                    id: transactionId++,
+                    date: dateStr,
+                    timestamp: date.getTime(),
+                    description: txnType.desc,
+                    category: txnType.category,
+                    amount: isDeposit ? finalAmount : -finalAmount,
+                    account: account === 'checking' ? 'Checking' : 'Savings',
+                    status: 'completed',
+                    balance: account === 'checking' ? currentChecking : currentSavings,
+                    reference: `PRT-${date.getFullYear()}${(date.getMonth()+1).toString().padStart(2,'0')}${day.toString().padStart(2,'0')}-${Math.floor(Math.random()*10000).toString().padStart(4,'0')}`
+                });
+            }
+            
+            // Sort by date (newest first)
+            transactions.sort((a, b) => b.timestamp - a.timestamp);
+            
+            bankingState.checking = currentChecking;
+            bankingState.savings = currentSavings;
+            bankingState.transactions = transactions;
+            
+            updateDisplayBalances();
+        }
+
+        function updateDisplayBalances() {
+            const checkingEl = document.getElementById('checking-balance');
+            const savingsEl = document.getElementById('savings-balance');
+            const totalEl = document.getElementById('total-balance');
+            
+            if (checkingEl) checkingEl.textContent = `$${bankingState.checking.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (savingsEl) savingsEl.textContent = `$${bankingState.savings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            
+            const total = bankingState.checking + bankingState.savings;
+            if (totalEl) totalEl.textContent = `$${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            
+            const monthlyInterest = (bankingState.savings * 0.0325) / 12;
+            const interestEl = document.getElementById('monthly-interest');
+            if (interestEl) interestEl.textContent = `$${monthlyInterest.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        // Generate professional receipt HTML
+        function generateReceiptHTML(transaction, type, additionalDetails = {}) {
+            const date = new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            
+            const receiptNumber = `RCP-${Date.now()}-${Math.floor(Math.random()*10000)}`;
+            const isPositive = transaction.amount > 0;
+            
+            let specificDetails = '';
+            if (type === 'deposit') {
+                specificDetails = `
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div><span class="text-gray-500">Deposit Method:</span></div><div class="font-medium">${additionalDetails.method || 'Wire Transfer'}</div>
+                        <div><span class="text-gray-500">Reference Number:</span></div><div class="font-mono">${additionalDetails.reference || transaction.reference || 'N/A'}</div>
+                        <div><span class="text-gray-500">Deposit Source:</span></div><div>${additionalDetails.source || transaction.description}</div>
+                    </div>
+                `;
+            } else if (type === 'withdraw') {
+                specificDetails = `
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div><span class="text-gray-500">Withdrawal Method:</span></div><div class="font-medium">${additionalDetails.method || 'Wire Transfer'}</div>
+                        <div><span class="text-gray-500">Payable To:</span></div><div>${additionalDetails.payable || transaction.description}</div>
+                        <div><span class="text-gray-500">Authorization Code:</span></div><div class="font-mono">AUTH-${Math.floor(Math.random()*1000000)}</div>
+                    </div>
+                `;
+            } else if (type === 'transfer') {
+                specificDetails = `
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div><span class="text-gray-500">Transfer ID:</span></div><div class="font-mono">TRF-${Date.now()}-${Math.floor(Math.random()*1000)}</div>
+                        <div><span class="text-gray-500">From Account:</span></div><div>${transaction.account}</div>
+                        <div><span class="text-gray-500">To Account:</span></div><div>${additionalDetails.toAccount || 'External Account'}</div>
+                        <div><span class="text-gray-500">Processing Time:</span></div><div>${new Date().toLocaleTimeString()}</div>
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="receipt-print bg-white p-8 rounded-lg">
+                    <!-- Header -->
+                    <div class="text-center border-b pb-6 mb-6">
+                        <div class="text-3xl font-bold text-blue-800 mb-2">PRAME TRUST BANK</div>
+                        <p class="text-gray-600">Business Banking Division</p>
+                        <p class="text-sm text-gray-500 mt-2">123 Financial District, New York, NY 10001</p>
+                        <p class="text-sm text-gray-500">www.prametrust.com | support@prametrust.com</p>
+                        <div class="mt-4 pt-4 border-t">
+                            <h2 class="text-xl font-bold text-gray-800">OFFICIAL TRANSACTION RECEIPT</h2>
+                            <p class="text-sm text-gray-500 mt-1">Receipt Number: ${receiptNumber}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Transaction Details -->
+                    <div class="space-y-4 mb-6">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="grid grid-cols-2 gap-3 text-sm">
+                                <div><span class="text-gray-500">Transaction Date:</span></div><div class="font-medium">${date}</div>
+                                <div><span class="text-gray-500">Transaction Type:</span></div><div class="font-medium capitalize">${type}</div>
+                                <div><span class="text-gray-500">Status:</span></div><div><span class="text-green-600 font-medium">COMPLETED</span></div>
+                                <div><span class="text-gray-500">Reference Number:</span></div><div class="font-mono">${transaction.reference || receiptNumber}</div>
+                            </div>
+                        </div>
+                        
+                        ${specificDetails}
+                        
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="grid grid-cols-2 gap-3 text-sm">
+                                <div><span class="text-gray-500">Description:</span></div><div class="font-medium">${transaction.description}</div>
+                                <div><span class="text-gray-500">Category:</span></div><div>${transaction.category}</div>
+                                <div><span class="text-gray-500">Account:</span></div><div>${transaction.account} (****${Math.floor(Math.random()*10000).toString().padStart(4,'0')})</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Amount Section -->
+                    <div class="bg-blue-50 p-6 rounded-lg text-center mb-6">
+                        <p class="text-sm text-gray-600 uppercase tracking-wide">Transaction Amount</p>
+                        <p class="text-4xl font-bold ${isPositive ? 'text-green-600' : 'text-red-600'}">
+                            ${isPositive ? '+' : '-'}$${Math.abs(transaction.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                    </div>
+                    
+                    <!-- Balance Information -->
+                    <div class="border-t pt-4 mb-6">
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div><span class="text-gray-500">Previous Balance:</span></div><div>$${(transaction.balance - transaction.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+                            <div><span class="text-gray-500">New Balance:</span></div><div class="font-bold">$${transaction.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Footer -->
+                    <div class="border-t pt-6 text-center text-sm text-gray-500">
+                        <p>This is an electronically generated receipt and requires no signature.</p>
+                        <p>For questions regarding this transaction, contact your account manager: Maria Maiden</p>
+                        <p class="mt-2">© 2025 Prame Trust Bank - Member FDIC - Equal Housing Lender</p>
+                        <div class="mt-4 pt-4 border-t">
+                            <p class="text-xs">Thank you for banking with Prame Trust</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Show receipt modal
+        function showReceipt(transaction, type, additionalDetails = {}) {
+            const receiptHTML = generateReceiptHTML(transaction, type, additionalDetails);
+            document.getElementById('receipt-content').innerHTML = receiptHTML;
+            document.getElementById('receipt-modal').classList.add('active');
+            
+            // Store current receipt for download
+            window.currentReceiptHTML = receiptHTML;
+        }
+
+        // Print receipt
+        function printReceipt() {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Transaction Receipt - Prame Trust Bank</title>
+                    <style>
+                        body { font-family: 'Courier New', monospace; margin: 0; padding: 20px; }
+                        @media print {
+                            body { margin: 0; padding: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${window.currentReceiptHTML}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        // Download receipt as PDF (via print dialog)
+        function downloadReceipt() {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Transaction Receipt - Prame Trust Bank</title>
+                    <style>
+                        body { font-family: 'Courier New', monospace; margin: 0; padding: 20px; }
+                    </style>
+                </head>
+                <body>
+                    ${window.currentReceiptHTML}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function addTransaction(account, amount, description, category, type, additionalDetails = {}) {
+            if (account === 'checking') {
+                bankingState.checking += amount;
+            } else {
+                bankingState.savings += amount;
+            }
+            
+            const newTransaction = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
+                timestamp: Date.now(),
+                description: description,
+                category: category,
+                amount: amount,
+                account: account === 'checking' ? 'Checking' : 'Savings',
+                status: 'completed',
+                balance: account === 'checking' ? bankingState.checking : bankingState.savings,
+                reference: `PRT-${new Date().getFullYear()}${(new Date().getMonth()+1).toString().padStart(2,'0')}${new Date().getDate().toString().padStart(2,'0')}-${Math.floor(Math.random()*10000).toString().padStart(4,'0')}`
+            };
+            
+            bankingState.transactions.unshift(newTransaction);
+            updateDisplayBalances();
+            renderTransactions();
+            
+            // Show receipt after successful transaction
+            showReceipt(newTransaction, type, additionalDetails);
+            
+            addNotification(
+                type === 'deposit' ? 'Deposit Completed' : type === 'withdraw' ? 'Withdrawal Processed' : 'Transfer Completed',
+                `${type === 'deposit' ? '+' : type === 'withdraw' ? '-' : ''}$${Math.abs(amount).toLocaleString()} to ${account === 'checking' ? 'Checking' : 'Savings'} account`,
+                'success'
+            );
+            
+            return newTransaction;
+        }
+
+        let notificationId = 1;
+        
+        function addNotification(title, message, type = 'info') {
+            const notification = {
+                id: notificationId++,
+                title: title,
+                message: message,
+                type: type,
+                timestamp: Date.now(),
+                read: false
+            };
+            bankingState.notifications.unshift(notification);
+            updateNotificationUI();
+            showToast(title, message, type);
+        }
+        
+        function updateNotificationUI() {
+            const unreadCount = bankingState.notifications.filter(n => !n.read).length;
+            const countEl = document.getElementById('notification-count');
+            if (countEl) {
+                countEl.textContent = unreadCount;
+                countEl.classList.toggle('hidden', unreadCount === 0);
+                if (unreadCount > 0) countEl.classList.add('notification-pulse');
+                else countEl.classList.remove('notification-pulse');
+            }
+            
+            const container = document.getElementById('notifications-list');
+            if (container) {
+                container.innerHTML = bankingState.notifications.slice(0, 20).map(n => `
+                    <div class="p-3 hover:bg-gray-50 cursor-pointer ${!n.read ? 'bg-blue-50' : ''}" data-id="${n.id}">
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center ${n.type === 'success' ? 'bg-green-100' : n.type === 'error' ? 'bg-red-100' : 'bg-blue-100'}">
+                                <i class="fas ${n.type === 'success' ? 'fa-check-circle text-green-600' : n.type === 'error' ? 'fa-exclamation-circle text-red-600' : 'fa-info-circle text-blue-600'} text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-900">${n.title}</p>
+                                <p class="text-xs text-gray-500">${n.message}</p>
+                                <p class="text-xs text-gray-400 mt-1">${new Date(n.timestamp).toLocaleTimeString()}</p>
+                            </div>
+                            ${!n.read ? '<div class="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>' : ''}
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.querySelectorAll('[data-id]').forEach(el => {
+                    el.addEventListener('click', () => {
+                        const id = parseInt(el.dataset.id);
+                        const notif = bankingState.notifications.find(n => n.id === id);
+                        if (notif) notif.read = true;
+                        updateNotificationUI();
+                    });
+                });
+            }
+        }
+        
+        function showToast(title, message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-4 right-4 z-50 bg-white rounded-lg shadow-lg p-4 max-w-sm border-l-4 ${type === 'success' ? 'border-green-500' : type === 'error' ? 'border-red-500' : 'border-blue-500'} transform transition-all duration-300 translate-x-full`;
+            toast.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle text-green-500' : type === 'error' ? 'fa-exclamation-circle text-red-500' : 'fa-info-circle text-blue-500'} mt-0.5"></i>
+                    <div class="flex-1">
+                        <p class="font-medium text-gray-900">${title}</p>
+                        <p class="text-sm text-gray-600">${message}</p>
+                    </div>
+                    <button class="text-gray-400 hover:text-gray-600 close-toast"><i class="fas fa-times"></i></button>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.classList.remove('translate-x-full'), 10);
+            
+            toast.querySelector('.close-toast')?.addEventListener('click', () => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => toast.remove(), 300);
+            });
+            
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.classList.add('translate-x-full');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 5000);
+        }
+
+        function renderTransactions(filter = 'all') {
+            const container = document.getElementById('transactions-container');
+            if (!container) return;
+            
+            let filtered = [...bankingState.transactions];
+            if (filter === 'checking') filtered = filtered.filter(t => t.account === 'Checking');
+            else if (filter === 'savings') filtered = filtered.filter(t => t.account === 'Savings');
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="p-8 text-center text-gray-500">No transactions found</div>';
+                return;
+            }
+            
+            container.innerHTML = filtered.slice(0, 50).map(t => `
+                <div class="transaction-card p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100" data-id="${t.id}">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center ${t.amount > 0 ? 'bg-green-100' : 'bg-red-100'}">
+                                <i class="fas ${t.amount > 0 ? 'fa-arrow-down text-green-600' : 'fa-arrow-up text-red-600'}"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900">${t.description}</p>
+                                <div class="flex gap-2 text-xs text-gray-500">
+                                    <span>${t.category}</span>
+                                    <span>•</span>
+                                    <span>${t.account}</span>
+                                    <span>•</span>
+                                    <span>${t.date}</span>
+                                </div>
+                                <p class="text-xs text-gray-400 font-mono mt-1">Ref: ${t.reference || 'N/A'}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold ${t.amount > 0 ? 'text-green-600' : 'text-red-600'}">
+                                ${t.amount > 0 ? '+' : '-'}$${Math.abs(t.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            </p>
+                            <p class="text-xs text-gray-400">Balance: $${t.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                            <button class="text-xs text-blue-600 hover:text-blue-800 mt-1 view-receipt" data-id="${t.id}">
+                                <i class="fas fa-receipt mr-1"></i>View Receipt
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Add receipt view handlers
+            document.querySelectorAll('.view-receipt').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const transactionId = parseInt(btn.getAttribute('data-id'));
+                    const transaction = bankingState.transactions.find(t => t.id === transactionId);
+                    if (transaction) {
+                        const type = transaction.amount > 0 ? 'deposit' : 'withdraw';
+                        showReceipt(transaction, type, {});
+                    }
+                });
+            });
+            
+            // Add transaction click handler for details
+            document.querySelectorAll('.transaction-card').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('view-receipt')) {
+                        // Could show detailed view here
+                    }
+                });
+            });
+        }
+
+        function showProcessing(message) {
+            const overlay = document.getElementById('processing-overlay');
+            const msgEl = document.getElementById('processing-message');
+            if (msgEl) msgEl.textContent = message;
+            if (overlay) overlay.classList.add('active');
+        }
+        
+        function hideProcessing() {
+            const overlay = document.getElementById('processing-overlay');
+            if (overlay) overlay.classList.remove('active');
+        }
+
+        function validateAmount(amount, maxAmount, accountName) {
+            if (!amount || amount <= 0) return 'Please enter a valid positive amount';
+            if (amount > maxAmount) return `Insufficient funds. Maximum available: $${maxAmount.toLocaleString()}`;
+            return null;
+        }
+
+        function validateExternalTransfer(recipientName, bankName, accountNumber, confirmAccount, routingNumber) {
+            if (!recipientName.trim()) return 'Please enter recipient name';
+            if (!bankName.trim()) return 'Please enter bank name';
+            if (!accountNumber.trim()) return 'Please enter account number';
+            if (!routingNumber.trim()) return 'Please enter routing number';
+            if (routingNumber.length !== 9 || !/^\d+$/.test(routingNumber)) return 'Routing number must be 9 digits';
+            if (accountNumber !== confirmAccount) return 'Account numbers do not match';
+            return null;
+        }
+
+        function processInternalTransfer(from, to, amount, description) {
+            return new Promise((resolve, reject) => {
+                showProcessing('Processing internal transfer...');
+                
+                setTimeout(() => {
+                    let fromBalance = from === 'checking' ? bankingState.checking : bankingState.savings;
+                    
+                    const error = validateAmount(amount, fromBalance, from === 'checking' ? 'Checking' : 'Savings');
+                    if (error) {
+                        hideProcessing();
+                        reject(error);
+                        return;
+                    }
+                    
+                    if (from === 'checking') {
+                        bankingState.checking -= amount;
+                        bankingState.savings += amount;
+                    } else {
+                        bankingState.savings -= amount;
+                        bankingState.checking += amount;
+                    }
+                    
+                    const transferDesc = description || `Internal transfer to ${to === 'checking' ? 'Checking' : 'Savings'}`;
+                    
+                    const newTransaction = {
+                        id: Date.now(),
+                        date: new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
+                        timestamp: Date.now(),
+                        description: transferDesc,
+                        category: 'Internal Transfer',
+                        amount: -amount,
+                        account: from === 'checking' ? 'Checking' : 'Savings',
+                        status: 'completed',
+                        balance: from === 'checking' ? bankingState.checking : bankingState.savings,
+                        reference: `TRF-${Date.now()}-${Math.floor(Math.random()*10000)}`
+                    };
+                    
+                    bankingState.transactions.unshift(newTransaction);
+                    
+                    updateDisplayBalances();
+                    renderTransactions();
+                    
+                    // Show receipt for the transfer
+                    showReceipt(newTransaction, 'transfer', { toAccount: to === 'checking' ? 'Business Checking' : 'Business Savings' });
+                    
+                    addNotification(
+                        'Internal Transfer Completed',
+                        `$${amount.toLocaleString()} transferred internally`,
+                        'success'
+                    );
+                    
+                    hideProcessing();
+                    resolve(true);
+                }, 800);
+            });
+        }
+
+        function processExternalTransfer(from, amount, description, externalDetails) {
+            return new Promise((resolve, reject) => {
+                showProcessing('Processing external transfer...');
+                
+                setTimeout(() => {
+                    let fromBalance = from === 'checking' ? bankingState.checking : bankingState.savings;
+                    
+                    const error = validateAmount(amount, fromBalance, from === 'checking' ? 'Checking' : 'Savings');
+                    if (error) {
+                        hideProcessing();
+                        reject(error);
+                        return;
+                    }
+                    
+                    if (from === 'checking') {
+                        bankingState.checking -= amount;
+                    } else {
+                        bankingState.savings -= amount;
+                    }
+                    
+                    const transferDesc = description || `External transfer to ${externalDetails.recipientName}`;
+                    
+                    const newTransaction = {
+                        id: Date.now(),
+                        date: new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
+                        timestamp: Date.now(),
+                        description: `${transferDesc} - ${externalDetails.bankName}`,
+                        category: 'External Transfer',
+                        amount: -amount,
+                        account: from === 'checking' ? 'Checking' : 'Savings',
+                        status: 'completed',
+                        balance: from === 'checking' ? bankingState.checking : bankingState.savings,
+                        reference: `EXT-${Date.now()}-${Math.floor(Math.random()*10000)}`,
+                        externalDetails: externalDetails
+                    };
+                    
+                    bankingState.transactions.unshift(newTransaction);
+                    
+                    savedExternalAccounts.push({
+                        id: Date.now(),
+                        recipientName: externalDetails.recipientName,
+                        bankName: externalDetails.bankName,
+                        accountNumber: externalDetails.accountNumber,
+                        routingNumber: externalDetails.routingNumber,
+                        lastUsed: new Date().toLocaleDateString()
+                    });
+                    
+                    updateDisplayBalances();
+                    renderTransactions();
+                    
+                    // Show receipt for external transfer
+                    showReceipt(newTransaction, 'transfer', { toAccount: `${externalDetails.bankName} - ${externalDetails.recipientName}` });
+                    
+                    addNotification(
+                        'External Transfer Completed',
+                        `$${amount.toLocaleString()} sent to ${externalDetails.recipientName} at ${externalDetails.bankName}`,
+                        'success'
+                    );
+                    
+                    hideProcessing();
+                    resolve(true);
+                }, 1000);
+            });
+        }
+
+        function processDeposit(account, amount, description, method, reference) {
+            return new Promise((resolve, reject) => {
+                showProcessing('Processing deposit...');
+                
+                setTimeout(() => {
+                    if (amount <= 0) {
+                        hideProcessing();
+                        reject('Please enter a valid positive amount');
+                        return;
+                    }
+                    
+                    if (account === 'checking') {
+                        bankingState.checking += amount;
+                    } else {
+                        bankingState.savings += amount;
+                    }
+                    
+                    const newTransaction = {
+                        id: Date.now(),
+                        date: new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
+                        timestamp: Date.now(),
+                        description: description || 'Deposit',
+                        category: 'Deposit',
+                        amount: amount,
+                        account: account === 'checking' ? 'Checking' : 'Savings',
+                        status: 'completed',
+                        balance: account === 'checking' ? bankingState.checking : bankingState.savings,
+                        reference: reference || `DEP-${Date.now()}-${Math.floor(Math.random()*10000)}`
+                    };
+                    
+                    bankingState.transactions.unshift(newTransaction);
+                    updateDisplayBalances();
+                    renderTransactions();
+                    
+                    // Show receipt for deposit
+                    showReceipt(newTransaction, 'deposit', { method: method, reference: reference });
+                    
+                    addNotification(
+                        'Deposit Processed',
+                        `$${amount.toLocaleString()} deposited to ${account === 'checking' ? 'Checking' : 'Savings'} account`,
+                        'success'
+                    );
+                    
+                    hideProcessing();
+                    resolve(true);
+                }, 600);
+            });
+        }
+
+        function processWithdrawal(account, amount, description, method, payableTo) {
+            return new Promise((resolve, reject) => {
+                showProcessing('Processing withdrawal...');
+                
+                setTimeout(() => {
+                    const currentBalance = account === 'checking' ? bankingState.checking : bankingState.savings;
+                    const error = validateAmount(amount, currentBalance, account === 'checking' ? 'Checking' : 'Savings');
+                    
+                    if (error) {
+                        hideProcessing();
+                        reject(error);
+                        return;
+                    }
+                    
+                    if (account === 'checking') {
+                        bankingState.checking -= amount;
+                    } else {
+                        bankingState.savings -= amount;
+                    }
+                    
+                    const newTransaction = {
+                        id: Date.now(),
+                        date: new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
+                        timestamp: Date.now(),
+                        description: description || `Withdrawal to ${payableTo || 'Unknown'}`,
+                        category: 'Withdrawal',
+                        amount: -amount,
+                        account: account === 'checking' ? 'Checking' : 'Savings',
+                        status: 'completed',
+                        balance: account === 'checking' ? bankingState.checking : bankingState.savings,
+                        reference: `WDL-${Date.now()}-${Math.floor(Math.random()*10000)}`
+                    };
+                    
+                    bankingState.transactions.unshift(newTransaction);
+                    updateDisplayBalances();
+                    renderTransactions();
+                    
+                    // Show receipt for withdrawal
+                    showReceipt(newTransaction, 'withdraw', { method: method, payable: payableTo });
+                    
+                    addNotification(
+                        'Withdrawal Processed',
+                        `$${amount.toLocaleString()} withdrawn from ${account === 'checking' ? 'Checking' : 'Savings'} account`,
+                        'warning'
+                    );
+                    
+                    hideProcessing();
+                    resolve(true);
+                }, 600);
+            });
+        }
+
+        function generateStatement() {
+            const totalDeposits = bankingState.transactions.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
+            const totalWithdrawals = bankingState.transactions.filter(t => t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0);
+            const totalBalance = bankingState.checking + bankingState.savings;
+            
+            const statementHTML = `
+                <div class="bg-white p-6 rounded-lg border">
+                    <div class="text-center mb-8">
+                        <div class="text-3xl font-bold text-blue-800 mb-2">PRAME TRUST BANK</div>
+                        <p class="text-gray-600">Business Account Statement</p>
+                        <p class="text-sm text-gray-500">Statement Period: January 1, 2025 - May 31, 2025</p>
+                        <p class="text-sm text-gray-500">Generated: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-4 mb-8">
+                        <div class="bg-gray-50 p-4 rounded-lg text-center">
+                            <p class="text-sm text-gray-500">Beginning Balance</p>
+                            <p class="text-xl font-bold">$5,200,000.00</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg text-center">
+                            <p class="text-sm text-gray-500">Ending Balance</p>
+                            <p class="text-xl font-bold">$${totalBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg text-center">
+                            <p class="text-sm text-gray-500">Net Change</p>
+                            <p class="text-xl font-bold text-green-600">+$${(totalBalance - 5200000).toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-500">Total Deposits (5 Months)</p>
+                            <p class="text-lg font-bold text-green-600">$${totalDeposits.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-500">Total Withdrawals (5 Months)</p>
+                            <p class="text-lg font-bold text-red-600">$${totalWithdrawals.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h3 class="font-semibold text-gray-800 mb-3">Transaction Details</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="p-3 text-left">Date</th>
+                                        <th class="p-3 text-left">Description</th>
+                                        <th class="p-3 text-left">Category</th>
+                                        <th class="p-3 text-left">Account</th>
+                                        <th class="p-3 text-right">Amount</th>
+                                        <th class="p-3 text-right">Balance</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${bankingState.transactions.slice(0, 30).map(t => `
+                                        <tr class="border-t">
+                                            <td class="p-3">${t.date}</td>
+                                            <td class="p-3">${t.description}</td>
+                                            <td class="p-3">${t.category}</td>
+                                            <td class="p-3">${t.account}</td>
+                                            <td class="p-3 text-right ${t.amount > 0 ? 'text-green-600' : 'text-red-600'}">
+                                                ${t.amount > 0 ? '+' : '-'}$${Math.abs(t.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                            </td>
+                                            <td class="p-3 text-right">$${t.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="text-center text-gray-500 text-sm mt-4">Showing last 30 of ${bankingState.transactions.length} transactions</p>
+                    </div>
+                    
+                    <div class="mt-8 p-4 bg-gray-100 rounded-lg text-center text-sm text-gray-600">
+                        <p><strong>Jason Esquire Legal Chambers LLC</strong> | Business ID: BUS-7890-4321-2025</p>
+                        <p>Account Manager: Maria Maiden | m.maiden@prametrust.com | (555) 123-4567</p>
+                        <p class="mt-2 text-xs">This statement is electronically generated and is considered official. For discrepancies, contact your account manager within 30 days.</p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('statement-content').innerHTML = statementHTML;
+        }
+
+        function setupTransferTypeToggle() {
+            const transferTypeSelect = document.getElementById('transfer-type');
+            const internalSection = document.getElementById('internal-transfer-section');
+            const externalSection = document.getElementById('external-transfer-section');
+            
+            if (transferTypeSelect) {
+                transferTypeSelect.addEventListener('change', function() {
+                    if (this.value === 'internal') {
+                        internalSection.classList.remove('hidden');
+                        externalSection.classList.add('hidden');
+                    } else {
+                        internalSection.classList.add('hidden');
+                        externalSection.classList.remove('hidden');
+                    }
+                });
+            }
+        }
+
+        function initializeEventListeners() {
+            document.getElementById('login-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                if (username === VALID_USERNAME && password === VALID_PASSWORD) {
+                    document.getElementById('loading-screen').style.display = 'flex';
+                    setTimeout(() => {
+                        document.getElementById('login-page').style.display = 'none';
+                        document.getElementById('dashboard').classList.remove('hidden');
+                        document.getElementById('loading-screen').style.display = 'none';
+                        renderTransactions();
+                        addNotification('Welcome Back', 'Successfully logged into Prame Trust Business Banking', 'success');
+                    }, 800);
+                } else {
+                    showToast('Login Failed', 'Invalid Business ID or Password', 'error');
+                }
+            });
+            
+            document.getElementById('logout-btn').addEventListener('click', (e) => {
+                e.preventDefault();
+                document.getElementById('loading-screen').style.display = 'flex';
+                setTimeout(() => {
+                    document.getElementById('dashboard').classList.add('hidden');
+                    document.getElementById('login-page').style.display = 'flex';
+                    document.getElementById('loading-screen').style.display = 'none';
+                    document.getElementById('username').value = '';
+                    document.getElementById('password').value = '';
+                }, 500);
+            });
+            
+            document.querySelectorAll('.action-btn[data-action="transfer"], #quick-transfer-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.getElementById('transfer-form').reset();
+                    document.getElementById('external-transfer-section').classList.add('hidden');
+                    document.getElementById('internal-transfer-section').classList.remove('hidden');
+                    document.getElementById('transfer-type').value = 'internal';
+                    document.getElementById('transfer-modal').classList.add('active');
+                });
+            });
+            
+            document.querySelectorAll('.action-btn[data-action="deposit"]').forEach(btn => {
+                btn.addEventListener('click', () => document.getElementById('deposit-modal').classList.add('active'));
+            });
+            
+            document.querySelectorAll('.action-btn[data-action="withdraw"]').forEach(btn => {
+                btn.addEventListener('click', () => document.getElementById('withdraw-modal').classList.add('active'));
+            });
+            
+            document.getElementById('generate-statement-btn').addEventListener('click', () => {
+                generateStatement();
+                document.getElementById('statement-modal').classList.add('active');
+            });
+            
+            document.getElementById('statements-menu-btn').addEventListener('click', (e) => {
+                e.preventDefault();
+                generateStatement();
+                document.getElementById('statement-modal').classList.add('active');
+            });
+            
+            document.querySelectorAll('.close-modal, #close-statement-modal, .close-receipt, #close-receipt').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.modal.active').forEach(m => m.classList.remove('active'));
+                });
+            });
+            
+            // Print receipt button
+            document.getElementById('print-receipt').addEventListener('click', () => {
+                printReceipt();
+            });
+            
+            // Download receipt button
+            document.getElementById('download-receipt').addEventListener('click', () => {
+                downloadReceipt();
+            });
+            
+            // Transfer form handler
+            document.getElementById('transfer-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const from = document.getElementById('transfer-from').value;
+                const transferType = document.getElementById('transfer-type').value;
+                const amount = parseFloat(document.getElementById('transfer-amount').value);
+                const description = document.getElementById('transfer-desc').value;
+                
+                if (transferType === 'internal') {
+                    const to = document.getElementById('transfer-to-internal').value;
+                    if (from === to) {
+                        showToast('Invalid Transfer', 'Cannot transfer to the same account', 'error');
+                        return;
+                    }
+                    try {
+                        await processInternalTransfer(from, to, amount, description);
+                        document.querySelectorAll('.modal.active').forEach(m => m.classList.remove('active'));
+                        document.getElementById('transfer-form').reset();
+                    } catch (error) {
+                        showToast('Transfer Failed', error, 'error');
+                    }
+                } else {
+                    const recipientName = document.getElementById('recipient-name').value;
+                    const bankName = document.getElementById('bank-name').value;
+                    const accountNumber = document.getElementById('account-number').value;
+                    const confirmAccount = document.getElementById('confirm-account').value;
+                    const routingNumber = document.getElementById('routing-number').value;
+                    
+                    const validationError = validateExternalTransfer(recipientName, bankName, accountNumber, confirmAccount, routingNumber);
+                    if (validationError) {
+                        showToast('Validation Error', validationError, 'error');
+                        return;
+                    }
+                    
+                    const externalDetails = { recipientName, bankName, accountNumber, routingNumber };
+                    try {
+                        await processExternalTransfer(from, amount, description, externalDetails);
+                        document.querySelectorAll('.modal.active').forEach(m => m.classList.remove('active'));
+                        document.getElementById('transfer-form').reset();
+                        document.getElementById('external-transfer-section').classList.add('hidden');
+                        document.getElementById('internal-transfer-section').classList.remove('hidden');
+                        document.getElementById('transfer-type').value = 'internal';
+                    } catch (error) {
+                        showToast('External Transfer Failed', error, 'error');
+                    }
+                }
+            });
+            
+            // Deposit form handler
+            document.getElementById('deposit-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const account = document.getElementById('deposit-account').value;
+                const amount = parseFloat(document.getElementById('deposit-amount').value);
+                const desc = document.getElementById('deposit-desc').value;
+                const method = document.getElementById('deposit-method').value;
+                const reference = document.getElementById('deposit-ref').value;
+                
+                try {
+                    await processDeposit(account, amount, desc, method, reference);
+                    document.querySelectorAll('.modal.active').forEach(m => m.classList.remove('active'));
+                    document.getElementById('deposit-form').reset();
+                } catch (error) {
+                    showToast('Deposit Failed', error, 'error');
+                }
+            });
+            
+            // Withdraw form handler
+            document.getElementById('withdraw-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const account = document.getElementById('withdraw-account').value;
+                const amount = parseFloat(document.getElementById('withdraw-amount').value);
+                const desc = document.getElementById('withdraw-desc').value;
+                const method = document.getElementById('withdraw-method').value;
+                const payableTo = document.getElementById('withdraw-payable').value;
+                
+                try {
+                    await processWithdrawal(account, amount, desc, method, payableTo);
+                    document.querySelectorAll('.modal.active').forEach(m => m.classList.remove('active'));
+                    document.getElementById('withdraw-form').reset();
+                } catch (error) {
+                    showToast('Withdrawal Failed', error, 'error');
+                }
+            });
+            
+            document.getElementById('transaction-filter').addEventListener('change', (e) => {
+                renderTransactions(e.target.value);
+            });
+            
+            document.getElementById('refresh-transactions').addEventListener('click', () => {
+                renderTransactions(document.getElementById('transaction-filter').value);
+                showToast('Refreshed', 'Transaction history updated', 'success');
+            });
+            
+            document.getElementById('notifications-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                const dropdown = document.getElementById('notifications-dropdown');
+                dropdown.classList.toggle('hidden');
+                updateNotificationUI();
+            });
+            
+            document.getElementById('user-menu-button').addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.getElementById('user-menu').classList.toggle('hidden');
+            });
+            
+            document.getElementById('business-support-btn').addEventListener('click', () => {
+                showToast('Business Support', 'Contact Maria Maiden: (555) 123-4567', 'info');
+            });
+            
+            document.getElementById('open-new-account').addEventListener('click', () => {
+                showToast('New Account', 'Please contact your account manager Maria Maiden', 'info');
+            });
+            
+            document.addEventListener('click', () => {
+                document.getElementById('notifications-dropdown').classList.add('hidden');
+                document.getElementById('user-menu').classList.add('hidden');
+            });
+            
+            document.getElementById('print-statement').addEventListener('click', () => {
+                window.print();
+            });
+            
+            setupTransferTypeToggle();
+        }
+
+        function init() {
+            initializeTransactions();
+            initializeEventListeners();
+            
+            setTimeout(() => {
+                if (!document.getElementById('dashboard').classList.contains('hidden')) {
+                    addNotification('System Ready', 'Prame Trust Business Banking is fully operational', 'success');
+                }
+            }, 1500);
+        }
+        
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.display = 'none';
+            }, 500);
+        });
+        
+        init();
+    </script>
+</body>
+</html>
